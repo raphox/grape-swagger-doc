@@ -170,7 +170,7 @@ module API
         title: "Title of API",
         contact: "BRA-develop@conseur.org",
         # Using the README.rdoc file not to pollute the file.
-        description: File.read(File.join(Rails.root, 'README.rdoc'))
+        description: File.read(File.join(Rails.root, 'README.md'))
       }
     )
   end
