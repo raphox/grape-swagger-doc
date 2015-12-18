@@ -6,6 +6,8 @@ module API
     prefix :api
 
     ## Shared context ##############################################
+    helpers API::Params::Status
+
     helpers do
       def current_user
         @current_user ||= ::User.first
@@ -86,6 +88,10 @@ module API
 
       desc 'Create a status.', {
         entity: API::Entities::Status,
+        # ***ATTENTION:***
+        # When you use a entity with params, the validation of type and other is not applied.
+        # See service `put ':id'` to use validations.
+        params: API::Entities::StatusParam.documentation,
         http_codes: [
           [500, "Cant load status.", API::Entities::Error]
         ],
@@ -94,18 +100,20 @@ module API
             description: 'Validates your identity',
             required: true
           }
-        }
+        },
+        notes: "Input object format: #{API::Utils::Format.pretty_documentation(API::Entities::StatusParam)}"
       }
-      params do
-        requires :status, type: Hash, desc: 'Your status.' do
-          requires :all, except: [:user_id], using: API::Entities::StatusParam.documentation
-        end
-      end
+      # ***ATTENTION:***
+      # Not working:
+      # params do
+      #   requires :all, except: [:user_id], using: API::Entities::StatusParam.documentation
+      # end
       post do
         authenticate!
         present ::Status.create!({
           user_id: current_user.id,
-          text: params[:status][:text]
+          text: params[:text],
+          address_attributes: params[:address]
         }), with: API::Entities::Status
       end
 
@@ -122,17 +130,26 @@ module API
           }
         }
       }
+      # ***ATTENTION:***
+      # Params validations not working
       params do
-        requires :id, type: String, desc: 'Status ID.'
-        requires :status, type: Hash, desc: 'Your status.' do
-          requires :all, except: [:user_id], using: API::Entities::StatusParam.documentation
+        requires :id, type: Integer, desc: 'Status ID.'
+        requires :text, type: String, desc: "Content of status."
+        optional :user_id, type: Integer, desc: "Reference to user."
+
+        optional :address, type: Hash, desc: "Object" do
+          requires :street, type: String, desc: "Street of address."
+          optional :number, type: Integer, desc: "Number of address."
+          optional :city, type: String, desc: 'City of address.'
+          optional :country, type: String, desc: 'Country of address.', default: 'Brazil', values: ['Brazil', 'Portugal']
         end
       end
-      put ':id' do
+      post ':id' do
         authenticate!
         current_user.statuses.find(params[:id]).update({
           user_id: current_user.id,
-          text: params[:status][:text]
+          text: params[:text],
+          address_attributes: params[:address]
         })
 
         present current_user.statuses.find(params[:id]), with: API::Entities::Status
@@ -163,6 +180,9 @@ module API
 
     ## Global context ##############################################
     add_swagger_documentation(
+      models: [
+        API::Entities::AddressParam
+      ],
       api_version: 'v1',
       format: :json,
       markdown: GrapeSwagger::Markdown::KramdownAdapter,

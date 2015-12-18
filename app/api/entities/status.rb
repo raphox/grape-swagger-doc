@@ -15,7 +15,7 @@ module API
       end
       
       expose :digest, documentation: { type: String, desc: "MD5 for current status." } do |status, options|
-        Digest::MD5.hexdigest status.text
+        Digest::MD5.hexdigest status.text rescue nil
       end
       
       # ATTENTION: In this relationship and `last_replay` you cant use recurse class because generate a infinity loop.
