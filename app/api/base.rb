@@ -113,8 +113,8 @@ module API
       desc 'Create a status.', {
         entity: API::Entities::Status,
         # ***ATTENTION:***
-        # When you use a entity with params, the validation of type and other is not applied.
-        # See service `put ':id'` to use validations.
+        # Use this format of params to accept `required` attribute.
+        # See more in [line 130](#L130)
         params: API::Entities::StatusParam.documentation,
         http_codes: [
           [500, "Cant load status.", API::Entities::Error]
@@ -128,7 +128,8 @@ module API
         notes: "Input object format: #{API::Utils::Format.pretty_documentation(API::Entities::StatusParam)}"
       }
       # ***ATTENTION:***
-      # Not working:
+      # This format not accept `required` attribute in entity class.
+      # 
       # params do
       #   requires :all, except: [:user_id], using: API::Entities::StatusParam.documentation
       # end
@@ -154,19 +155,10 @@ module API
           }
         }
       }
-      # ***ATTENTION:***
-      # Params validations not working
       params do
-        requires :id, type: Integer, desc: 'Status ID.'
-        requires :text, type: String, desc: "Content of status."
-        optional :user_id, type: Integer, desc: "Reference to user."
-
-        optional :address, type: Hash, desc: "Object" do
-          requires :street, type: String, desc: "Street of address."
-          optional :number, type: Integer, desc: "Number of address."
-          optional :city, type: String, desc: 'City of address.'
-          optional :country, type: String, desc: 'Country of address.', default: 'Brazil', values: ['Brazil', 'Portugal']
-        end
+        # ***ATTENTION:***
+        # This is not a best format. Use as in [line 115](#L115)
+        use :status # defined in app/api/params/status.rb
       end
       put ':id' do
         authenticate!
