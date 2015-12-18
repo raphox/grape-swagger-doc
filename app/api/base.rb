@@ -6,6 +6,8 @@ module API
     prefix :api
 
     ## Shared context ##############################################
+    use Grape::Middleware::Logger
+
     helpers API::Params::Status
 
     helpers do
@@ -18,9 +20,31 @@ module API
       end
     end
 
-    before do
-      header['Access-Control-Allow-Origin'] = '*'
-      header['Access-Control-Request-Method'] = '*'
+    default_error_formatter :json
+
+    rescue_from Grape::Exceptions::ValidationErrors do |e|
+      API::Utils::ErrorsHandler.validationErrors(e)
+    end
+
+    rescue_from ActiveRecord::RecordNotFound do |e|
+      API::Utils::ErrorsHandler.notFoundError(e)
+    end
+
+    rescue_from ActiveRecord::StatementInvalid do |e|
+      API::Utils::ErrorsHandler.sqlError(e)
+    end
+
+    rescue_from :all do |e|
+      # Send error and backtrace down to the client in the response body (only for internal/testing purposes of course)
+      API::Utils::ErrorsHandler.genericError(e).finish
+    end
+
+    rescue_from :all do |e|
+      # Log it
+      Rails.logger.error "#{e.message}\n\n#{e.backtrace.join("\n")}"
+
+      # Send error and backtrace down to the client in the response body (only for internal/testing purposes of course)
+      Rack::Response.new({ message: e.message, backtrace: e.backtrace }, 500, { 'Content-type' => 'application/json' }).finish
     end
 
     ## Endpoint context ############################################
@@ -144,7 +168,7 @@ module API
           optional :country, type: String, desc: 'Country of address.', default: 'Brazil', values: ['Brazil', 'Portugal']
         end
       end
-      post ':id' do
+      puts ':id' do
         authenticate!
         current_user.statuses.find(params[:id]).update({
           user_id: current_user.id,

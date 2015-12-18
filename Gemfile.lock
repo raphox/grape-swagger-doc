@@ -76,6 +76,8 @@ GEM
     grape-entity (0.4.8)
       activesupport
       multi_json (>= 1.3.2)
+    grape-middleware-logger (1.5.1)
+      grape (>= 0.14, < 1)
     grape-swagger (0.10.4)
       grape (>= 0.8.0)
       grape-entity (< 0.5.0)
@@ -184,6 +186,7 @@ DEPENDENCIES
   coffee-rails (~> 4.1.0)
   grape
   grape-entity
+  grape-middleware-logger
   grape-swagger
   jbuilder (~> 2.0)
   jquery-rails

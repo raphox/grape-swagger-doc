@@ -34,6 +34,7 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 
 gem 'grape'
 gem 'grape-entity'
+gem 'grape-middleware-logger'
 gem 'grape-swagger'
 gem 'kramdown'
 gem 'rack-cors', :require => 'rack/cors'

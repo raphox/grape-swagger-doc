@@ -23,6 +23,9 @@ module GrapeDoc
     # Do not swallow errors in after_commit/after_rollback callbacks.
     config.active_record.raise_in_transactional_callbacks = true
 
+    config.middleware.delete 'Rails::Rack::Logger'
+    config.middleware.insert_after 'ActionDispatch::RequestId', 'SelectiveLogger'
+
     # config.paths.add File.join('app', 'api'), glob: File.join('**', '*.rb')
     config.autoload_paths += Dir[Rails.root.join('app')]
 
