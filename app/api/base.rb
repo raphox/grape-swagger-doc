@@ -168,7 +168,7 @@ module API
           optional :country, type: String, desc: 'Country of address.', default: 'Brazil', values: ['Brazil', 'Portugal']
         end
       end
-      puts ':id' do
+      put ':id' do
         authenticate!
         current_user.statuses.find(params[:id]).update({
           user_id: current_user.id,
